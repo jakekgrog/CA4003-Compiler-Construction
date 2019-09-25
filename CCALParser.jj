@@ -1,0 +1,53 @@
+/* SECTION 1 - OPTIONS */
+
+options { 
+    JAVA_UNICODE_ESCAPE = true;
+
+    // CCAL is not case sensitive
+    IGNORE_CASE = true;
+}
+
+/* SECTION 2 - USER CODE */
+
+import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+
+PARSER_BEGIN(CCALParser)
+
+public class CCALParser {
+    
+    public static void main(String args[]) {
+        
+        // Initialize the parser to read
+        CCALParser parser;
+
+        if (args.length == 0) {
+            System.out.println("Reading from standard input...");
+            parser = new CCALParser(System.in);
+        } else if (args.length == 1) {
+            try {
+                parser = new CCALParser(new FileInputStream(args[0]));
+            } catch (FileNotFoundException err) {
+                System.err.println("File " + args[0] + " not found");
+                return;
+            }
+        } else {
+            System.out.println("CCAL Parser: Usage is one of:");
+            System.out.println("    java CCALParser < inputfile");
+            System.out.println("OR");
+            System.out.println("    java CCALParser inputfile");
+            return;
+        }
+
+        // Try to parse the file
+        try {
+            parser.program();
+            System.out.println("File parsed successfully");
+        } catch (ParseException err) {
+            System.out.println(err.getMessage());
+            System.out.println("Encountered the above errors while parsing the file");
+        }
+    }
+}
+
+PARSER_END(CCALParser)
