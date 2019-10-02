@@ -51,3 +51,86 @@ public class CCALParser {
 }
 
 PARSER_END(CCALParser)
+
+/* SECTION 3 - TOKENS */
+
+TOKEN_MGR_DECLS : {
+    static int commentNesting;
+}
+
+// Skip whitespace, newline, form feed, verticle and horizontal tabs
+SKIP : {
+      " "
+    | "\n"
+    | "\t"
+    | "\f"
+    | "\v"
+    | "\r"
+}
+
+// Skip comments
+SKIP : {
+      < "//" ([" "-"~"])* ("\n" | "\r" | "\r\n") >
+    | "/*" { commentNesting++; } : IN_COMMENT
+}
+
+<IN_COMMENT> SKIP : {
+      "/*" { commentNesting++; }
+    | "*/" {
+        commentNesting--;
+        if (commentNesting == 0) {
+            SwitchTo(DEFAULT);
+        }
+    }
+    // Anything not recognized (everything else)
+    | <~[]>
+}
+
+
+// Keywords
+TOKEN: {
+      < VARIABLE : "var" >
+    | < CONSTANT : "const" >
+    | < RETURN : "return" >
+    | < INTEGER : "integer" >
+    | < BOOLEAN : "BOOLEAN" >
+    | < VOID : "void" >
+    | < MAIN: "main" >
+    | < IF : "if" >
+    | < ELSE : "else" >
+    | < TRUE : "true" >
+    | < FALSE: "false" >
+    | < WHILE : "while" >
+    | < SKP : "skip" >
+    | < COMMA : "," >
+    | < SEMIC : ";" >
+    | < COLON : ":" >
+    | < ASSIGN : "=" >
+    | < LBRAC : "{" >
+    | < RBRAC : "}" >
+    | < LPAREN : "(" >
+    | < RPAREN : ")" >
+    | < ADD : "+" >
+    | < SUB : "-" >
+    | < TILD : "~" > 
+    | < OR : "||" >
+    | < AND : "&&" >
+    | < EQUAL : "==" >
+    | < NOT_EQUAL : "!=" >
+    | < LESS_THAN : "<" >
+    | < LESS_EQUAL : "<=" >
+    | < GRTR_THAN : ">" >
+    | < GRTR_EQUAL : ">=" >
+}
+
+TOKEN : {
+      < #DIGIT : ["0"-"9"] >
+    | < NUMBER : ("-")* ["1"-"9"] (DIGIT)* | "0" >
+    | < #LETTER : ["a"-"z""A"-"Z"] >
+    | < IDENT : <LETTER> (<LETTER>  | "_" | <DIGIT>)* >
+}
+
+// Everything else not recognised yet
+TOKEN : {
+    < OTHER : ~[] >
+}
