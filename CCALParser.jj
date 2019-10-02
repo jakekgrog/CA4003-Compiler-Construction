@@ -9,10 +9,10 @@ options {
 
 /* SECTION 2 - USER CODE */
 
+PARSER_BEGIN(CCALParser)
+
 import java.io.FileNotFoundException;
 import java.io.FileInputStream;
-
-PARSER_BEGIN(CCALParser)
 
 public class CCALParser {
     
@@ -64,7 +64,6 @@ SKIP : {
     | "\n"
     | "\t"
     | "\f"
-    | "\v"
     | "\r"
 }
 
@@ -93,7 +92,7 @@ TOKEN: {
     | < CONST : "const" >
     | < RETURN : "return" >
     | < INT : "integer" >
-    | < BOOL : "BOOLEAN" >
+    | < BOOL : "boolean" >
     | < VOID : "void" >
     | < MAIN: "main" >
     | < IF : "if" >
@@ -112,25 +111,161 @@ TOKEN: {
     | < RPAREN : ")" >
     | < ADD : "+" >
     | < SUB : "-" >
-    | < TILD : "~" > 
+    | < NEGATE : "~" > 
     | < OR : "||" >
     | < AND : "&&" >
     | < EQUAL : "==" >
     | < NOT_EQUAL : "!=" >
     | < LESS_THAN : "<" >
-    | < LESS_EQUAL : "<=" >
+    | < LESS_THAN_EQUAL : "<=" >
     | < GRTR_THAN : ">" >
-    | < GRTR_EQUAL : ">=" >
+    | < GRTR_THAN_EQUAL : ">=" >
 }
 
 TOKEN : {
       < #DIGIT : ["0"-"9"] >
-    | < NUMBER : ("-")* ["1"-"9"] (DIGIT)* | "0" >
-    | < #LETTER : ["a"-"z""A"-"Z"] >
+    | < NUMBER : ("-")* ["1"-"9"] (<DIGIT>)* | "0" >
+    | < #LETTER : ["a"-"z", "A"-"Z"] >
     | < IDENT : <LETTER> (<LETTER>  | "_" | <DIGIT>)* >
 }
 
 // Everything else not recognised yet
-TOKEN : {
-    < OTHER : ~[] >
+
+/* SECTION 4 - GRAMMAR */
+
+void program() : {}
+{
+    declList() functionList() main()
+}
+
+void declList() : {}
+{
+    ( decl() <SEMIC> declList() )?
+}
+
+void decl() : {}
+{
+      varDecl()
+    | constDecl()
+}
+
+void varDecl() : {}
+{
+    <VAR> <IDENT> <COLON> type()
+}
+
+void constDecl() : {}
+{
+    <CONST> <IDENT> <COLON> type()
+}
+
+void functionList() : {}
+{
+    (function() functionList())?
+}
+
+void function() : {}
+{
+    type() <IDENT> <LPAREN> paramList() <RPAREN>
+    <LBRAC> 
+    declList()
+    statementBlock() 
+    <RETURN> <LPAREN> ( expression() )? <RPAREN> <SEMIC>
+    <RBRAC>
+}
+
+void type() : {}
+{
+      <INT>
+    | <BOOL>
+    | <VOID>
+}
+
+void paramList() : {}
+{
+    ( nempParamList() )?
+}
+
+void nempParamList() : {}
+{
+    <IDENT> <COLON> type() (<COMMA> nempParamList())?
+}
+
+void main() : {}
+{
+    <MAIN> <LBRAC>
+    declList()
+    statementBlock()
+    <RBRAC>
+}
+
+void statementBlock() : {}
+{
+    ( statement() statementBlock() )?
+}
+
+void statement() : {}
+{
+      LOOKAHEAD(3) <IDENT> <ASSIGN> expression() <SEMIC>
+    | <IDENT> <LPAREN> argList() <RPAREN> <SEMIC>
+    | <LBRAC> statementBlock() <RBRAC>
+    | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC>
+    | <WHILE> condition() <LBRAC> statementBlock() <RBRAC>
+    | <SKP> <SEMIC>
+}
+
+void expression() : {}
+{
+    fragment() ( binOp() expression() )?
+}
+
+void binOp() : {}
+{
+    <ADD> | <SUB>
+}
+
+void fragment() : {}
+{
+      <IDENT> (<LPAREN> argList() <RPAREN>)?
+    | <SUB> <IDENT>
+    | <NUMBER>
+    | <TRUE>
+    | <FALSE>
+    | <LBRAC>expression()<RBRAC>
+}
+
+void condition() : {}
+{
+      <NEGATE> condition()
+    | <LPAREN> condition() <RPAREN>
+    | LOOKAHEAD(2) expression() compOp() expression()
+    | expression() ((<AND> | <OR>) expression())?
+}
+
+void conditionPrime() : {}
+{
+      <AND> condition()
+    | <OR> condition()
+    | {}
+}
+
+void compOp() : {}
+{
+      <EQUAL>
+    | <NOT_EQUAL>
+    | <LESS_THAN>
+    | <LESS_THAN_EQUAL>
+    | <GRTR_THAN>
+    | <GRTR_THAN_EQUAL>
+}
+
+void argList() : {} 
+{
+    ( nempArgList() )?
+}
+
+void nempArgList() : {}
+{
+      LOOKAHEAD(2) <IDENT>
+    | <IDENT> <COMMA> nempArgList()
 }
