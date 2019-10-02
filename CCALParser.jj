@@ -89,11 +89,11 @@ SKIP : {
 
 // Keywords
 TOKEN: {
-      < VARIABLE : "var" >
-    | < CONSTANT : "const" >
+      < VAR : "var" >
+    | < CONST : "const" >
     | < RETURN : "return" >
-    | < INTEGER : "integer" >
-    | < BOOLEAN : "BOOLEAN" >
+    | < INT : "integer" >
+    | < BOOL : "BOOLEAN" >
     | < VOID : "void" >
     | < MAIN: "main" >
     | < IF : "if" >
