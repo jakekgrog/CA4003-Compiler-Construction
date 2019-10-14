@@ -206,17 +206,28 @@ void statementBlock() : {}
 
 void statement() : {}
 {
-      LOOKAHEAD(3) <IDENT> <ASSIGN> expression() <SEMIC>
-    | <IDENT> <LPAREN> argList() <RPAREN> <SEMIC>
+      <IDENT> statementPrime()
     | <LBRAC> statementBlock() <RBRAC>
     | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC>
     | <WHILE> condition() <LBRAC> statementBlock() <RBRAC>
     | <SKP> <SEMIC>
 }
 
+void statementPrime() : {}
+{
+      (<EQUAL> expression() <SEMIC> | <LPAREN> argList() <RPAREN> <SEMIC>)?
+}
+
 void expression() : {}
 {
-    fragment() ( binOp() expression() )?
+      fragment() expressionPrime()
+    | <LPAREN> expression() <RPAREN>
+    | <IDENT> <LPAREN> argList() <RPAREN>
+}
+
+void expressionPrime() : {}
+{
+    ( binOp() fragment() )?
 }
 
 void binOp() : {}
@@ -226,27 +237,27 @@ void binOp() : {}
 
 void fragment() : {}
 {
-      <IDENT> (<LPAREN> argList() <RPAREN>)?
+      <IDENT>
     | <SUB> <IDENT>
     | <NUMBER>
     | <TRUE>
     | <FALSE>
-    | <LBRAC>expression()<RBRAC>
+    | expression()
 }
 
+/* POSSIBLY REMOVE conditionPrime() FROM ALL BELOW */
 void condition() : {}
 {
-      <NEGATE> condition()
-    | <LPAREN> condition() <RPAREN>
-    | LOOKAHEAD(2) expression() compOp() expression()
-    | expression() ((<AND> | <OR>) expression())?
+      
+      <NEGATE> condition() conditionPrime()
+    | <LPAREN> condition() <RPAREN> conditionPrime()
+    | expression() compOp() expression() conditionPrime()
+    | conditionPrime()
 }
 
-void conditionPrime() : {}
+void conditionPrime() : {} 
 {
-      <AND> condition()
-    | <OR> condition()
-    | {}
+    ((<AND> | <OR>) condition() conditionPrime())?
 }
 
 void compOp() : {}
@@ -266,6 +277,6 @@ void argList() : {}
 
 void nempArgList() : {}
 {
-      LOOKAHEAD(2) <IDENT>
+      <IDENT>
     | <IDENT> <COMMA> nempArgList()
 }
