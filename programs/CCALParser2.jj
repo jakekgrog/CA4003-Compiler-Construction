@@ -207,20 +207,26 @@ void statementBlock() : {}
 void statement() : {}
 {
       <IDENT> statementPrime()
-    | <LBRAC> statementBlock() <RBRAC> statementPrime()
-    | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC> statementPrime()
-    | <WHILE> condition() <LBRAC> statementBlock() <RBRAC> statementPrime()
-    | <SKP> <SEMIC> statementPrime()
+    | <LBRAC> statementBlock() <RBRAC>
+    | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC>
+    | <WHILE> condition() <LBRAC> statementBlock() <RBRAC>
+    | <SKP> <SEMIC>
 }
 
-void statementPrime(): {}
+void statementPrime() : {}
 {
-    (<ASSIGN> expression() <SEMIC> | <LPAREN> argList() <RPAREN> <SEMIC> ) | {}
+    (<ASSIGN> expression() <SEMIC> | <LPAREN> argList() <RPAREN> <SEMIC>)?
 }
 
 void expression() : {}
 {
-      fragment() (binOp() fragment() | {})
+      fragment() expressionPrime()
+    | <LPAREN> conditionPrime()
+}
+
+void expressionPrime() : {}
+{
+    binOp() fragment()
 }
 
 void binOp() : {}
@@ -230,37 +236,38 @@ void binOp() : {}
 
 void fragment() : {}
 {
-     (<MIN>)? <IDENT> identPrime()
-    | <NUMBER> fragmentPrime()
-    | <TRUE> fragmentPrime()
-    | <FALSE> fragmentPrime()
+      <LPAREN> conditionPrime() fragmentPrimePrime()
+    | <IDENT> fragmentPrime() fragmentPrimePrime()
+    | <MIN> <IDENT> fragmentPrimePrime()
+    | <NUMBER> fragmentPrimePrime()
+    | <TRUE> fragmentPrimePrime()
+    | <FALSE> fragmentPrimePrime()
 }
 
-void identPrime(): {}
+void fragmentPrimePrime() : {}
 {
-    (<LPAREN> argList() <RPAREN> | {}) fragmentPrime()
+    (expressionPrime() fragmentPrimePrime())?
 }
 
-void fragmentPrime(): {}
+void fragmentPrime() : {}
 {
-    binOp() fragment() fragmentPrime() | {}
+    (<LPAREN> argList() <RPAREN>)?
 }
 
 void condition() : {}
 {
-      <NEGATE> condition() conditionPrime()
-    | <LPAREN> fp()
-    | expression() compOp() expression() conditionPrime()
+      expression() compOp() expression() conditionPrimePrime()
+    | <NEGATE> condition() conditionPrimePrime()
 }
 
-void fp(): {}
+void conditionPrimePrime() : {}
 {
-    condition() <RPAREN> conditionPrime() | {}
+    ((<AND> | <OR>) condition() conditionPrimePrime())?
 }
 
-void conditionPrime(): {}
+void conditionPrime() : {}
 {
-    ((<AND> | <OR>) condition() conditionPrime() | {})
+    (expression() <RPAREN> | condition() <RPAREN>)?
 }
 
 void compOp() : {}
@@ -280,5 +287,10 @@ void argList() : {}
 
 void nempArgList() : {}
 {
-      <IDENT> ( <COMMA> nempArgList() | {})
+      <IDENT> nempArgListPrime()
+}
+
+void nempArgListPrime() : {}
+{
+    (<COMMA> nempArgList())?
 }
