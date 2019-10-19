@@ -5,7 +5,7 @@ integer multiply (x:integer, y:integer)
     var result: integer;
     var minus_sign: boolean;
     // figure out sign of result and convert args to absolute values
-    if (x < 0 && y >= 0 && (5 - 8 == -3) == true)
+    if ((8 + 6 + 5 == 8)) && d < (6)
     {
         minus_sign = true;
         x = -x;
@@ -53,7 +53,7 @@ integer test_fn(x: integer)
 {
     var i: integer;
     i = 2;
-    return(x);
+    return(x - 5 + 8);
 }
 
 main

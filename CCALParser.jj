@@ -2,7 +2,7 @@
 
 options { 
     JAVA_UNICODE_ESCAPE = true;
-
+    DEBUG_PARSER = true;
     // CCAL is not case sensitive
     IGNORE_CASE = true;
 }
@@ -207,60 +207,65 @@ void statementBlock() : {}
 void statement() : {}
 {
       <IDENT> statementPrime()
-    | <LBRAC> statementBlock() <RBRAC> statementPrime()
-    | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC> statementPrime()
-    | <WHILE> condition() <LBRAC> statementBlock() <RBRAC> statementPrime()
-    | <SKP> <SEMIC> statementPrime()
+    | <LBRAC> statementBlock() <RBRAC>
+    | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC>
+    | <WHILE> condition() <LBRAC> statementBlock() <RBRAC>
+    | <SKP> <SEMIC>
 }
 
-void statementPrime(): {}
+void statementPrime() : {}
 {
-    (<ASSIGN> expression() <SEMIC> | <LPAREN> argList() <RPAREN> <SEMIC> ) | {}
-}
-
-void expression() : {}
-{
-      fragment() (binOp() fragment() | {})
-}
-
-void binOp() : {}
-{
-    <ADD> | <MIN>
-}
-
-void fragment() : {}
-{
-     (<MIN>)? <IDENT> identPrime()
-    | <NUMBER> fragmentPrime()
-    | <TRUE> fragmentPrime()
-    | <FALSE> fragmentPrime()
-}
-
-void identPrime(): {}
-{
-    (<LPAREN> argList() <RPAREN> | {}) fragmentPrime()
-}
-
-void fragmentPrime(): {}
-{
-    binOp() fragment() fragmentPrime() | {}
+      <ASSIGN> expression() <SEMIC>
+    | <LPAREN> argList() <RPAREN> <SEMIC>
 }
 
 void condition() : {}
 {
       <NEGATE> condition() conditionPrime()
-    | <LPAREN> fp()
-    | expression() compOp() expression() conditionPrime()
-}
-
-void fp(): {}
-{
-    condition() <RPAREN> conditionPrime() | {}
+    | <LPAREN> condition() <RPAREN> conditionPrime()
+    | fragment() compOp() expression() conditionPrime()
 }
 
 void conditionPrime(): {}
 {
-    ((<AND> | <OR>) condition() conditionPrime() | {})
+    (<AND> | <OR>) condition()
+    | {}   
+}
+
+
+void expression() : {}
+{
+      fragment() N()
+    | <LPAREN> expression() <RPAREN>
+}
+
+void expressionPrime(): {}
+{
+    binOp() expression() | {}
+}
+
+void fragment() : {}
+{
+     (<MIN>)? <IDENT> fragmentPrime() N()
+   | <NUMBER> N()
+   | <TRUE> N()
+   | <FALSE> N()
+}
+
+void N(): {}
+{
+     binOp() fragment() N() | {}
+}
+
+void fragmentPrime(): {}
+{
+      <LPAREN> argList() <RPAREN>
+    | {}
+}
+
+void binOp() : {}
+{
+    <ADD> | <MIN>
 }
 
 void compOp() : {}
@@ -280,5 +285,10 @@ void argList() : {}
 
 void nempArgList() : {}
 {
-      <IDENT> ( <COMMA> nempArgList() | {})
+      <IDENT> nempArgListPrime()
+}
+
+void nempArgListPrime() : {}
+{
+    (<COMMA> nempArgList())?
 }
