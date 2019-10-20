@@ -1,13 +1,18 @@
-/* SECTION 1 - OPTIONS */
+ /*******************************
+ ***** SECTION 1 - OPTIONS *****
+ *******************************/
 
 options { 
     JAVA_UNICODE_ESCAPE = true;
     DEBUG_PARSER = true;
+
     // CCAL is not case sensitive
     IGNORE_CASE = true;
 }
 
-/* SECTION 2 - USER CODE */
+/*********************************
+ ***** SECTION 2 - USER CODE *****
+ *********************************/
 
 PARSER_BEGIN(CCALParser)
 
@@ -52,13 +57,15 @@ public class CCALParser {
 
 PARSER_END(CCALParser)
 
-/* SECTION 3 - TOKENS */
+/*****************************************
+ ***** SECTION 3 - TOKEN DEFINITIONS *****
+ *****************************************/
 
 TOKEN_MGR_DECLS : {
     static int commentNesting;
 }
 
-// Skip whitespace, newline, form feed, verticle and horizontal tabs
+// Skip whitespace, newline, form feed, tabs and carriage return
 SKIP : {
       " "
     | "\n"
@@ -86,7 +93,7 @@ SKIP : {
 }
 
 
-// Keywords
+// Reserved keywords
 TOKEN: {
       < VAR : "var" >
     | < CONST : "const" >
@@ -101,7 +108,12 @@ TOKEN: {
     | < FALSE: "false" >
     | < WHILE : "while" >
     | < SKP : "skip" >
-    | < COMMA : "," >
+}
+
+
+// Language tokens
+TOKEN: {
+      < COMMA : "," >
     | < SEMIC : ";" >
     | < COLON : ":" >
     | < ASSIGN : "=" >
@@ -122,6 +134,7 @@ TOKEN: {
     | < GRTR_THAN_EQUAL : ">=" >
 }
 
+// Define what identifiers and numbers are
 TOKEN : {
       < #DIGIT : ["0"-"9"] >
     | < NUMBER : ("-")* ["1"-"9"] (<DIGIT>)* | "0" >
@@ -129,9 +142,9 @@ TOKEN : {
     | < IDENT : <LETTER> (<LETTER>  | "_" | <DIGIT>)* >
 }
 
-// Everything else not recognised yet
-
-/* SECTION 4 - GRAMMAR */
+/***********************************
+***** SECTION 4 - THE GRAMMAR *****
+***********************************/
 
 void program() : {}
 {
@@ -235,26 +248,23 @@ void conditionPrime(): {}
 
 void expression() : {}
 {
-      fragment() N()
-    | <LPAREN> expression() <RPAREN>
-}
-
-void expressionPrime(): {}
-{
-    binOp() expression() | {}
+     <LPAREN> expression() <RPAREN>
+    |  fragment() expressionPrime()
 }
 
 void fragment() : {}
 {
-     (<MIN>)? <IDENT> fragmentPrime() N()
-   | <NUMBER> N()
-   | <TRUE> N()
-   | <FALSE> N()
+     <IDENT> fragmentPrime() expressionPrime()
+   | <MIN> <IDENT> expressionPrime()
+   | <NUMBER> expressionPrime()
+   | <TRUE> expressionPrime()
+   | <FALSE> expressionPrime()
 }
 
-void N(): {}
+void expressionPrime(): {}
 {
-     binOp() fragment() N() | {}
+      binOp() expression() expressionPrime()
+    | {}
 }
 
 void fragmentPrime(): {}
