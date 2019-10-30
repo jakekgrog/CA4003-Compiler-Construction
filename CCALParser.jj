@@ -252,6 +252,12 @@ void expression() : {}
     |  fragment() expressionPrime()
 }
 
+void expressionPrime(): {}
+{
+      binOp() expression() expressionPrime()
+    | {}
+}
+
 void fragment() : {}
 {
      <IDENT> fragmentPrime() expressionPrime()
@@ -259,12 +265,6 @@ void fragment() : {}
    | <NUMBER> expressionPrime()
    | <TRUE> expressionPrime()
    | <FALSE> expressionPrime()
-}
-
-void expressionPrime(): {}
-{
-      binOp() expression() expressionPrime()
-    | {}
 }
 
 void fragmentPrime(): {}
