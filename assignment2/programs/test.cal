@@ -1,0 +1,71 @@
+var i : integer;
+
+integer multiply (x:integer, y:integer)
+{
+    var result: integer;
+    var minus_sign: boolean;
+    // figure out sign of result and convert args to absolute values
+    if (((8 + (6 + 5) == 8)) && (5 - (9 - 7) < (6 - 5)) )
+    {
+        minus_sign = true;
+        x = -x;
+    }
+
+    else
+    {
+        if y < 0 && x >= 0
+        {
+            minus_sign = true;
+            y = -y;
+        }
+        else
+        {
+            if (x < 0) && y < 0
+            {
+                minus_sign = false;
+                x = -x;
+                y = -y;
+            }
+            else
+            {
+                minus_sign = false;
+            }
+        }
+    }
+    result = 0;
+    while (y > 0)
+    {
+        result = result + x;
+        y = y - 1;
+    }
+    if minus_sign == true 
+    {
+        result = -result;
+    }
+    else
+    {
+        skip;
+    }
+    return (result);
+}
+
+integer test_fn(x: integer)
+{
+    var i: integer;
+    i = 2;
+    return(x - 5 + 8);
+}
+
+main
+{
+    var arg1: integer;
+    var arg2: integer;
+    var result: integer;
+    const five: integer = 5;
+    var i: integer;
+    arg1 = -6;
+    arg2 = five;
+    result = multiply(arg1, arg2);
+    i = 1;
+    i = testfn(i);
+}

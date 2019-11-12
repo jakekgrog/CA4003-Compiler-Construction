@@ -1,0 +1,317 @@
+ /*******************************
+ ***** SECTION 1 - OPTIONS *****
+ *******************************/
+
+options { 
+    JAVA_UNICODE_ESCAPE = true;
+
+    // CCAL is not case sensitive
+    IGNORE_CASE = true;
+
+    MULTI = true;
+    VISITOR = true;
+}
+
+/*********************************
+ ***** SECTION 2 - USER CODE *****
+ *********************************/
+
+PARSER_BEGIN(CCALParser)
+
+import java.io.FileNotFoundException;
+import java.io.FileInputStream;
+
+public class CCALParser {
+    
+    public static void main(String args[]) {
+        
+        // Initialize the parser to read
+        CCALParser parser;
+
+        if (args.length == 0) {
+            System.out.println("Reading from standard input...");
+            parser = new CCALParser(System.in);
+        } else if (args.length == 1) {
+            try {
+                parser = new CCALParser(new FileInputStream(args[0]));
+            } catch (FileNotFoundException err) {
+                System.err.println("File " + args[0] + " not found");
+                return;
+            }
+        } else {
+            System.out.println("CCAL Parser: Usage is one of:");
+            System.out.println("    java CCALParser < inputfile");
+            System.out.println("OR");
+            System.out.println("    java CCALParser inputfile");
+            return;
+        }
+
+        // Try to parse the file
+        try {
+            SimpleNode root = parser.program();
+            root.dump("");
+            System.out.println("File parsed successfully");
+        } catch (ParseException err) {
+            System.out.println(err.getMessage());
+            System.out.println("Encountered the above errors while parsing the file");
+        }
+    }
+}
+
+PARSER_END(CCALParser)
+
+/*****************************************
+ ***** SECTION 3 - TOKEN DEFINITIONS *****
+ *****************************************/
+
+TOKEN_MGR_DECLS : {
+    static int commentNesting;
+}
+
+// Skip whitespace, newline, form feed, tabs and carriage return
+SKIP : {
+      " "
+    | "\n"
+    | "\t"
+    | "\f"
+    | "\r"
+}
+
+// Skip comments
+SKIP : {
+      < "//" ([" "-"~"])* ("\n" | "\r" | "\r\n") >
+    | "/*" { commentNesting++; } : IN_COMMENT
+}
+
+<IN_COMMENT> SKIP : {
+      "/*" { commentNesting++; }
+    | "*/" {
+        commentNesting--;
+        if (commentNesting == 0) {
+            SwitchTo(DEFAULT);
+        }
+    }
+    // Anything not recognized (everything else)
+    | <~[]>
+}
+
+
+// Reserved keywords
+TOKEN: {
+      < VAR : "var" >
+    | < CONST : "const" >
+    | < RETURN : "return" >
+    | < INT : "integer" >
+    | < BOOL : "boolean" >
+    | < VOID : "void" >
+    | < MAIN: "main" >
+    | < IF : "if" >
+    | < ELSE : "else" >
+    | < TRUE : "true" >
+    | < FALSE: "false" >
+    | < WHILE : "while" >
+    | < SKP : "skip" >
+}
+
+
+// Language tokens
+TOKEN: {
+      < COMMA : "," >
+    | < SEMIC : ";" >
+    | < COLON : ":" >
+    | < ASSIGN : "=" >
+    | < LBRAC : "{" >
+    | < RBRAC : "}" >
+    | < LPAREN : "(" >
+    | < RPAREN : ")" >
+    | < ADD : "+" >
+    | < MIN : "-" >
+    | < NEGATE : "~" > 
+    | < OR : "||" >
+    | < AND : "&&" >
+    | < EQUAL : "==" >
+    | < NOT_EQUAL : "!=" >
+    | < LESS_THAN : "<" >
+    | < LESS_THAN_EQUAL : "<=" >
+    | < GRTR_THAN : ">" >
+    | < GRTR_THAN_EQUAL : ">=" >
+}
+
+// Define what identifiers and numbers are
+TOKEN : {
+      < #DIGIT : ["0"-"9"] >
+    | < NUMBER : ("-")* ["1"-"9"] (<DIGIT>)* | "0" >
+    | < #LETTER : ["a"-"z", "A"-"Z"] >
+    | < IDENT : <LETTER> (<LETTER>  | "_" | <DIGIT>)* >
+}
+
+/***********************************
+***** SECTION 4 - THE GRAMMAR *****
+***********************************/
+
+SimpleNode program() #Program : {}
+{
+    declList() functionList() main() { return jjtThis; }
+}
+
+void declList() #DeclList : {}
+{
+    ( decl() <SEMIC> declList() )?
+}
+
+void decl() : {}
+{
+      varDecl()
+    | constDecl()
+}
+
+void varDecl() #VarDecl : {}
+{
+    <VAR> ident() <COLON> type()
+}
+
+void constDecl() #ConstDecl : {}
+{
+    <CONST> ident() <COLON> type() <ASSIGN> expression()
+}
+
+void functionList() #FunctionList : {}
+{
+    (function() functionList())?
+}
+
+void function() #Function: {}
+{
+    type() ident() <LPAREN> paramList() <RPAREN>
+    <LBRAC> 
+    declList()
+    statementBlock() 
+    <RETURN> <LPAREN> ( expression() )? <RPAREN> <SEMIC>
+    <RBRAC>
+}
+
+String type() #Type: {Token t;}
+{
+      (t = <INT>) {jjtThis.value = t.image; return t.image;}
+    | (t = <BOOL>) {jjtThis.value = t.image; return t.image;}
+    | (t = <VOID>) {jjtThis.value = t.image; return t.image;}
+}
+
+void paramList() #ParamList : {}
+{
+    ( nempParamList() )?
+}
+
+void nempParamList() #NempParamList : {}
+{
+    ident() <COLON> type() (<COMMA> nempParamList())?
+}
+
+void main() #Main : {}
+{
+    <MAIN> <LBRAC>
+    declList()
+    statementBlock()
+    <RBRAC>
+}
+
+void statementBlock() #StatementBlock : {}
+{
+    ( statement() statementBlock() )?
+}
+
+void statement() #Statement : {}
+{
+      ident() statementPrime()
+    | <LBRAC> statementBlock() <RBRAC>
+    | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC>
+    | <WHILE> condition() <LBRAC> statementBlock() <RBRAC>
+    | <SKP> <SEMIC>
+}
+
+void statementPrime() : {}
+{
+      <ASSIGN> expression() <SEMIC>
+    | <LPAREN> argList() <RPAREN> <SEMIC>
+}
+
+void condition() : {}
+{
+      <NEGATE> condition() conditionPrime()
+    | <LPAREN> condition() <RPAREN> conditionPrime()
+    | fragment() compOp() expression() conditionPrime()
+}
+
+void conditionPrime(): {}
+{
+    (<AND> | <OR>) condition()
+    | {}   
+}
+
+
+void expression() : {}
+{
+     <LPAREN> expression() <RPAREN>
+    |  fragment() expressionPrime()
+}
+
+void expressionPrime(): {}
+{
+      binOp() expression() expressionPrime()
+    | {}
+}
+
+void fragment() : {}
+{
+     ident() fragmentPrime() expressionPrime()
+   | <MIN> ident() expressionPrime()
+   | <NUMBER> expressionPrime()
+   | <TRUE> expressionPrime()
+   | <FALSE> expressionPrime()
+}
+
+void fragmentPrime(): {}
+{
+      <LPAREN> argList() <RPAREN>
+    | {}
+}
+
+void binOp() : {}
+{
+    <ADD> | <MIN>
+}
+
+void compOp() : {}
+{
+      <EQUAL>
+    | <NOT_EQUAL>
+    | <LESS_THAN>
+    | <LESS_THAN_EQUAL>
+    | <GRTR_THAN>
+    | <GRTR_THAN_EQUAL>
+}
+
+void argList() #ArgList : {} 
+{
+    ( nempArgList() )?
+}
+
+void nempArgList() : {}
+{
+      ident() nempArgListPrime()
+}
+
+void nempArgListPrime() #ArgList : {}
+{
+    (<COMMA> nempArgList())?
+}
+
+String ident() #Ident : {Token t;}
+{
+    (t = <IDENT>) {jjtThis.value = t.image; return t.image;}
+}
+
+String number() #Number : {Token t;}
+{
+    (t = <NUMBER>) {jjtThis.value = t.image; return t.image;}
+}
