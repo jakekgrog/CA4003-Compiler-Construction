@@ -1,0 +1,4 @@
+- removed statementPrime - not sure how to handle passing tokens between functions
+- made identifier and type to help handle types and identifiers
+
+** Noticed assignment where right operand was a function did not work, had to create a call node

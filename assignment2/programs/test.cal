@@ -1,6 +1,6 @@
 var i : integer;
 
-integer multiply (x:integer, y:integer)
+/* integer multiply (x:integer, y:integer)
 {
     var result: integer;
     var minus_sign: boolean;
@@ -54,7 +54,7 @@ integer test_fn(x: integer)
     var i: integer;
     i = 2;
     return(x - 5 + 8);
-}
+} */
 
 main
 {
@@ -65,6 +65,7 @@ main
     var i: integer;
     arg1 = -6;
     arg2 = five;
+    multiply(arg1, arg2);
     result = multiply(arg1, arg2);
     i = 1;
     i = testfn(i);

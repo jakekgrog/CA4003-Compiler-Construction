@@ -10,6 +10,8 @@ options {
 
     MULTI = true;
     VISITOR = true;
+    NODE_DEFAULT_VOID = true;
+    NODE_PREFIX = "";
 }
 
 /*********************************
@@ -165,14 +167,14 @@ void decl() : {}
     | constDecl()
 }
 
-void varDecl() #VarDecl : {}
+void varDecl() #VarDecl : {Token t; String id; String type;}
 {
-    <VAR> ident() <COLON> type()
+    t = <VAR> id = ident() <COLON> type = type()
 }
 
-void constDecl() #ConstDecl : {}
+void constDecl() #ConstDecl : {Token t; String id; String type;}
 {
-    <CONST> ident() <COLON> type() <ASSIGN> expression()
+    t = <CONST> id = ident() <COLON> type = type() <ASSIGN> expression()
 }
 
 void functionList() #FunctionList : {}
@@ -180,9 +182,9 @@ void functionList() #FunctionList : {}
     (function() functionList())?
 }
 
-void function() #Function: {}
+void function() #Function: {String type; String id;}
 {
-    type() ident() <LPAREN> paramList() <RPAREN>
+    type = type() id = ident() <LPAREN> paramList() <RPAREN>
     <LBRAC> 
     declList()
     statementBlock() 
@@ -202,9 +204,9 @@ void paramList() #ParamList : {}
     ( nempParamList() )?
 }
 
-void nempParamList() #NempParamList : {}
+void nempParamList() #NempParamList : {String id; String type;}
 {
-    ident() <COLON> type() (<COMMA> nempParamList())?
+    id = ident() <COLON> type = type() (<COMMA> nempParamList())?
 }
 
 void main() #Main : {}
@@ -220,19 +222,13 @@ void statementBlock() #StatementBlock : {}
     ( statement() statementBlock() )?
 }
 
-void statement() #Statement : {}
+void statement() : {Token t;}
 {
-      ident() statementPrime()
+      ident() (t = <ASSIGN> expression() <SEMIC> {jjtThis.value = t.image;} #Assignment(2) | <LPAREN> argList() <RPAREN> <SEMIC> #FuncCall(2))
     | <LBRAC> statementBlock() <RBRAC>
     | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC>
     | <WHILE> condition() <LBRAC> statementBlock() <RBRAC>
-    | <SKP> <SEMIC>
-}
-
-void statementPrime() : {}
-{
-      <ASSIGN> expression() <SEMIC>
-    | <LPAREN> argList() <RPAREN> <SEMIC>
+    | <SKP> <SEMIC> #Skip
 }
 
 void condition() : {}
@@ -265,14 +261,14 @@ void fragment() : {}
 {
      ident() fragmentPrime() expressionPrime()
    | <MIN> ident() expressionPrime()
-   | <NUMBER> expressionPrime()
+   | number() expressionPrime()
    | <TRUE> expressionPrime()
    | <FALSE> expressionPrime()
 }
 
 void fragmentPrime(): {}
 {
-      <LPAREN> argList() <RPAREN>
+      <LPAREN> argList() <RPAREN> #FuncCall(2)
     | {}
 }
 
