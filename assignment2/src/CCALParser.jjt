@@ -188,8 +188,13 @@ void function() #Function: {String type; String id;}
     <LBRAC> 
     declList()
     statementBlock() 
-    <RETURN> <LPAREN> ( expression() )? <RPAREN> <SEMIC>
+    <RETURN> <LPAREN> returnStatement() <RPAREN> <SEMIC>
     <RBRAC>
+}
+
+void returnStatement() #Return : {}
+{
+    (expression())?
 }
 
 String type() #Type: {Token t;}
@@ -226,44 +231,49 @@ void statement() : {Token t;}
 {
       ident() (t = <ASSIGN> expression() <SEMIC> {jjtThis.value = t.image;} #Assignment(2) | <LPAREN> argList() <RPAREN> <SEMIC> #FuncCall(2))
     | <LBRAC> statementBlock() <RBRAC>
-    | <IF> condition() <LBRAC> statementBlock() <RBRAC> <ELSE> <LBRAC> statementBlock() <RBRAC>
-    | <WHILE> condition() <LBRAC> statementBlock() <RBRAC>
+    | t = <IF> condition() <LBRAC> statementBlock() <RBRAC> elseStatement() {jjtThis.value = t.image;} #Statement(3)
+    | t = <WHILE> condition() <LBRAC> statementBlock() <RBRAC> {jjtThis.value = t.image;} #Statement(2)
     | <SKP> <SEMIC> #Skip
+}
+
+void elseStatement() : {Token t;}
+{
+    t = <ELSE> <LBRAC> statementBlock() <RBRAC> {jjtThis.value = t.image;} #Statement(1)
 }
 
 void condition() : {}
 {
       <NEGATE> condition() conditionPrime()
     | <LPAREN> condition() <RPAREN> conditionPrime()
-    | fragment() compOp() expression() conditionPrime()
+    | fragment() compOp() conditionPrime()
 }
 
-void conditionPrime(): {}
+void conditionPrime(): {Token t;}
 {
-    (<AND> | <OR>) condition()
+    (t = <AND> | t = <OR>) condition() {jjtThis.value = t.image;} #BoolOp(2)
     | {}   
 }
 
 
 void expression() : {}
 {
-     <LPAREN> expression() <RPAREN>
+     <LPAREN> expression() <RPAREN> expressionPrime()
     |  fragment() expressionPrime()
 }
 
 void expressionPrime(): {}
 {
-      binOp() expression() expressionPrime()
+      binOp() expressionPrime()
     | {}
 }
 
-void fragment() : {}
+void fragment() : {Token t;}
 {
      ident() fragmentPrime() expressionPrime()
-   | <MIN> ident() expressionPrime()
+   | t = <MIN> ident() {jjtThis.value = t.image;} #NegateIdent(1) expressionPrime()
    | number() expressionPrime()
-   | <TRUE> expressionPrime()
-   | <FALSE> expressionPrime()
+   | t = <TRUE> {jjtThis.value = t.image;} #Boolean expressionPrime()
+   | t = <FALSE> {jjtThis.value = t.image;} #Boolean expressionPrime()
 }
 
 void fragmentPrime(): {}
@@ -272,19 +282,20 @@ void fragmentPrime(): {}
     | {}
 }
 
-void binOp() : {}
+void binOp() : {Token t;}
 {
-    <ADD> | <MIN>
+      t = <ADD> expression() {jjtThis.value = t.image;} #ArithOp(2)
+    | t = <MIN> expression() {jjtThis.value = t.image;} #ArithOp(2)
 }
 
-void compOp() : {}
+void compOp() : {Token t;}
 {
-      <EQUAL>
-    | <NOT_EQUAL>
-    | <LESS_THAN>
-    | <LESS_THAN_EQUAL>
-    | <GRTR_THAN>
-    | <GRTR_THAN_EQUAL>
+    ( t = <EQUAL> expression() {jjtThis.value = t.image;}
+    | t = <NOT_EQUAL> expression() {jjtThis.value = t.image;}
+    | t = <LESS_THAN> expression() {jjtThis.value = t.image;}
+    | t = <LESS_THAN_EQUAL> expression() {jjtThis.value = t.image;}
+    | t = <GRTR_THAN> expression() {jjtThis.value = t.image;}
+    | t = <GRTR_THAN_EQUAL> expression() {jjtThis.value = t.image;}) #CompOp(2)
 }
 
 void argList() #ArgList : {} 

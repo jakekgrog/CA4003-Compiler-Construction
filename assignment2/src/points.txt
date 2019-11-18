@@ -2,3 +2,12 @@
 - made identifier and type to help handle types and identifiers
 
 ** Noticed assignment where right operand was a function did not work, had to create a call node
+
+** In fragment compop expression, moved expression into compop to build a compopNode 
+   otherwise would have had condition node with 3 children - exp compop exp
+
+** In expressionPrime, moved expression (binOp expression) into binOp for same reason above.
+
+** Moved ELSE to its own production rule so it can have it's own node.
+
+** Had to create a Return Node as the return was being handled as a random expression or identifier
