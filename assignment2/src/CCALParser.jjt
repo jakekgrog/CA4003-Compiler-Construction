@@ -24,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.FileInputStream;
 
 public class CCALParser {
+
+    static SymbolTable st = new SymbolTable();
     
     public static void main(String args[]) {
         
@@ -50,6 +52,7 @@ public class CCALParser {
 
         // Try to parse the file
         try {
+            st.printStack();
             SimpleNode root = parser.program();
             root.dump("");
             System.out.println("File parsed successfully");
