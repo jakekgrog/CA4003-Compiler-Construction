@@ -3,7 +3,7 @@ class STTest {
         SymbolTable st = new SymbolTable();
 
         System.out.println("ADDING NEW SYMBOL");
-        st.putSymbol("a", DataTypes.unknown, DataTypes.function, "main");
+        st.putSymbol("a", "unknown", DataTypes.function, "main");
         
         st.printStack();
         st.printHashTable();
@@ -17,8 +17,8 @@ class STTest {
         System.out.println("\n\n");
         
         System.out.println("ADDING TWO NEW SYMBOLS....");
-        st.putSymbol("a", DataTypes.bool, DataTypes.function, "func");
-        st.putSymbol("b", DataTypes.number, DataTypes.function, "func");
+        st.putSymbol("a", "bool", DataTypes.function, "func");
+        st.putSymbol("b", "number", DataTypes.function, "func");
         
         st.printStack();
         st.printHashTable();

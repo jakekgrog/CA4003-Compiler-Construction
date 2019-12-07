@@ -7,5 +7,4 @@ public enum DataTypes {
     function,
     compOp,
     unknown,
-    voidType;
 }

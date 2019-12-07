@@ -35,7 +35,7 @@ public class SymbolTable
         return (Object) new SymbolTableEntry();      
     }
 
-    public void putSymbol(String id, DataTypes type, DataTypes declType, String scope) {
+    public void putSymbol(String id, String type, DataTypes declType, String scope) {
         SymbolTableEntry newEntry = new SymbolTableEntry(id, type, declType, scope);
         
         // Push symbol to undo stack

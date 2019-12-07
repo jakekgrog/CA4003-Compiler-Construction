@@ -180,12 +180,12 @@ void decl() : {}
 
 void varDecl() #VarDecl : {Token t; String id; String type;}
 {
-    t = <VAR> id = ident() <COLON> type = type()
+    t = <VAR> id = lIdent() <COLON> type = type()
 }
 
 void constDecl() #ConstDecl : {Token t; String id; String type;}
 {
-    t = <CONST> id = ident() <COLON> type = type() <ASSIGN> expression()
+    t = <CONST> id = lIdent() <COLON> type = type() <ASSIGN> expression()
 }
 
 void functionList() #FunctionList : {}
@@ -195,12 +195,12 @@ void functionList() #FunctionList : {}
 
 void function() #Function: {String type; String id;}
 {
-    (type = type() id = ident() { scope = id;} <LPAREN> paramList() <RPAREN>
+    type = type() id = lIdent() { scope = id;} <LPAREN> paramList() <RPAREN>
     openBlock()
     declList()
     statementBlock() 
     <RETURN> <LPAREN> returnStatement() <RPAREN> <SEMIC>
-    closeBlock()) {scope = "global";}
+    closeBlock()
 }
 
 void returnStatement() #Return : {}
@@ -222,7 +222,7 @@ void paramList() #ParamList : {}
 
 void nempParamList() #NempParamList : {String id; String type;}
 {
-    id = ident() <COLON> type = type() (<COMMA> nempParamList())?
+    id = lIdent() <COLON> type = type() (<COMMA> nempParamList())?
 }
 
 void main() #Main : {}
@@ -241,7 +241,7 @@ void statementBlock() #StatementBlock : {}
 
 void statement() : {Token t;}
 {
-      ident() (t = <ASSIGN> expression() <SEMIC> {jjtThis.value = t.image;} #Assignment(2) | <LPAREN> argList() <RPAREN> <SEMIC> #FuncCall(2))
+      lIdent() (t = <ASSIGN> expression() <SEMIC> {jjtThis.value = t.image;} #Assignment(2) | <LPAREN> argList() <RPAREN> <SEMIC> #FuncCall(2))
     | <LBRAC> statementBlock() <RBRAC>
     | t = <IF> condition() <LBRAC> statementBlock() <RBRAC> elseStatement() {jjtThis.value = t.image;} #Statement(3)
     | t = <WHILE> condition() <LBRAC> statementBlock() <RBRAC> {jjtThis.value = t.image;} #Statement(2)
@@ -281,8 +281,8 @@ void expressionPrime(): {}
 
 void fragment() : {Token t;}
 {
-     ident() fragmentPrime() expressionPrime()
-   | t = <MIN> ident() {jjtThis.value = t.image;} #NegateIdent(1) expressionPrime()
+     rIdent() fragmentPrime() expressionPrime()
+   | t = <MIN> rIdent() {jjtThis.value = t.image;} #NegateIdent(1) expressionPrime()
    | number() expressionPrime()
    | t = <TRUE> {jjtThis.value = t.image;} #Boolean expressionPrime()
    | t = <FALSE> {jjtThis.value = t.image;} #Boolean expressionPrime()
@@ -317,7 +317,7 @@ void argList() #ArgList : {}
 
 void nempArgList() : {}
 {
-      ident() nempArgListPrime()
+      rIdent() nempArgListPrime()
 }
 
 void nempArgListPrime() #ArgList : {}
@@ -325,7 +325,17 @@ void nempArgListPrime() #ArgList : {}
     (<COMMA> nempArgList())?
 }
 
-String ident() #Ident : {Token t;}
+String lIdent() #LIdent : {String s;}
+{
+    s = Ident() { return s; }
+}
+
+String rIdent() #RIdent : { String s; }
+{
+    s = Ident() { return s; }
+}
+
+String Ident() #Ident: {Token t;}
 {
     (t = <IDENT>) {jjtThis.value = t.image; return t.image;}
 }
@@ -335,12 +345,12 @@ String number() #Number : {Token t;}
     (t = <NUMBER>) {jjtThis.value = t.image; return t.image;}
 }
 
-void openBlock(): {}
+void openBlock() # OpenBlock(): {}
 {
-    <LBRAC> { st.openScope(); }
+    <LBRAC>
 }
 
-void closeBlock(): {}
+void closeBlock() #CloseBlock: {}
 {
-    <RBRAC> { st.printStack(); st.closeScope(); st.printStack();}
+    <RBRAC>
 }

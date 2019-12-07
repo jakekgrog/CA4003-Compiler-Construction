@@ -1,22 +1,21 @@
-var test: integer;
-const myNum: integer = true;
+var test: boolean;
+const myBool: integer = 5;
+
 
 integer add(x: integer, y: integer) {
-    var test: integer;
-    var result: integer;
-    result = x + y;
-    return(result);
+    x = y + 2 + 8;
+    return(x);
 }
 
 main
 {
-    var x: integer;
-    var y: integer;
+    // var x: integer;
+    // var test: integer;
 
     var i: integer;
 
-    x = 5;
-    y = 8;
+//    x = 5;
+//    y = true;
 
     i = add(x, y);
 }
