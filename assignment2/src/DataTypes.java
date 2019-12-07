@@ -1,7 +1,11 @@
 public enum DataTypes {
-    VARIABLE,
-    CONSTANT,
-    NUMBER,
-    BOOLEAN,
-    UNKNOWN;
+    varDecl,
+    constDecl,
+    number,
+    bool,
+    assign,
+    function,
+    compOp,
+    unknown,
+    voidType;
 }

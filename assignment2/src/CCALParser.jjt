@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 public class CCALParser {
 
     static SymbolTable st = new SymbolTable();
+    static String scope = "global";
     
     public static void main(String args[]) {
         
@@ -53,8 +54,15 @@ public class CCALParser {
         // Try to parse the file
         try {
             st.printStack();
+            
             SimpleNode root = parser.program();
             root.dump("");
+            
+            st.printStack();
+
+            SemanticCheckVisitor visitor = new SemanticCheckVisitor();
+            root.jjtAccept(visitor, "");
+
             System.out.println("File parsed successfully");
         } catch (ParseException err) {
             System.out.println(err.getMessage());
@@ -187,12 +195,12 @@ void functionList() #FunctionList : {}
 
 void function() #Function: {String type; String id;}
 {
-    type = type() id = ident() <LPAREN> paramList() <RPAREN>
-    <LBRAC> 
+    (type = type() id = ident() { scope = id;} <LPAREN> paramList() <RPAREN>
+    openBlock()
     declList()
     statementBlock() 
     <RETURN> <LPAREN> returnStatement() <RPAREN> <SEMIC>
-    <RBRAC>
+    closeBlock()) {scope = "global";}
 }
 
 void returnStatement() #Return : {}
@@ -219,10 +227,11 @@ void nempParamList() #NempParamList : {String id; String type;}
 
 void main() #Main : {}
 {
-    <MAIN> <LBRAC>
+    <MAIN> openBlock()
     declList()
     statementBlock()
-    <RBRAC>
+    closeBlock()
+    {st.closeScope();} 
 }
 
 void statementBlock() #StatementBlock : {}
@@ -324,4 +333,14 @@ String ident() #Ident : {Token t;}
 String number() #Number : {Token t;}
 {
     (t = <NUMBER>) {jjtThis.value = t.image; return t.image;}
+}
+
+void openBlock(): {}
+{
+    <LBRAC> { st.openScope(); }
+}
+
+void closeBlock(): {}
+{
+    <RBRAC> { st.printStack(); st.closeScope(); st.printStack();}
 }

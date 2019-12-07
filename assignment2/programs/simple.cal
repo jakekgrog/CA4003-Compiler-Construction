@@ -1,0 +1,22 @@
+var test: integer;
+const myNum: integer = true;
+
+integer add(x: integer, y: integer) {
+    var test: integer;
+    var result: integer;
+    result = x + y;
+    return(result);
+}
+
+main
+{
+    var x: integer;
+    var y: integer;
+
+    var i: integer;
+
+    x = 5;
+    y = 8;
+
+    i = add(x, y);
+}

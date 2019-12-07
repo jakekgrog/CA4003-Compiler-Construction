@@ -32,11 +32,11 @@ public class SymbolTable
                     return (Object)smbl;
             }
         } 
-        return new Object();      
+        return (Object) new SymbolTableEntry();      
     }
 
-    public void putSymbol(String id, String type, String scope) {
-        SymbolTableEntry newEntry = new SymbolTableEntry(id, type, scope);
+    public void putSymbol(String id, DataTypes type, DataTypes declType, String scope) {
+        SymbolTableEntry newEntry = new SymbolTableEntry(id, type, declType, scope);
         
         // Push symbol to undo stack
         undoStack.add(id);
