@@ -11,3 +11,22 @@
 ** Moved ELSE to its own production rule so it can have it's own node.
 
 ** Had to create a Return Node as the return was being handled as a random expression or identifier
+
+
+1. Is every identifier declared within scope before it is used
+2. Is no identifier declared more than once in the same scope
+3. Is the left-hand side of an assignment a variable of the correct type
+4. Are the arguments of an arithmetic operator the integer variables or int constants
+5. Are the arguments of a boolean operator boolean variables or bool constants
+6. Are the arguments of a comparison operator both of the same type
+7. Are the arguments of a logical operator both of the same type
+8. Is there a function for every invoked identifier
+9. Does every function call have the correct number of arguments
+10. Does every argument of a function have the correct type
+11. Is every function called
+12. Does every function return the correct type
+13. Is every variable both written to and read from
+14. Are any constants reassigned
+15. Have all variables been written to and read from
+
+in 15 - Not checking if variables in "main" scope have been read from as there are no return types so some variables wont be read
