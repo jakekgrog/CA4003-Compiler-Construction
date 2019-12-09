@@ -63,6 +63,9 @@ public class CCALParser {
             SemanticCheckVisitor visitor = new SemanticCheckVisitor();
             root.jjtAccept(visitor, "");
 
+            IRCodeVisitor IRVisitor = new IRCodeVisitor();
+            root.jjtAccept(IRVisitor, "");
+
             System.out.println("File parsed successfully");
         } catch (ParseException err) {
             System.out.println(err.getMessage());

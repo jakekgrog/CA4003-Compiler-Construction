@@ -10,7 +10,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
     SymbolTable st = new SymbolTable();
     private ArrayList<String> functions = new ArrayList<>();
     private Hashtable<String, Hashtable<String, Integer>> scopeWriteRead = new Hashtable<>();
-
     
     @Override
     public Object visit(SimpleNode node, Object data) {
@@ -252,10 +251,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
         if (leftOpType != DataTypes.number | rightOpType != DataTypes.number) {
             System.out.println("Value Error: Incompatible types " + leftOpType + " and " + rightOpType);
         } else {
-            SimpleNode rIdNode = (SimpleNode) node.jjtGetChild(0);
-            SimpleNode idNode = (SimpleNode) rIdNode.jjtGetChild(0);
-            String id = (String) idNode.jjtGetValue();
-            scopeRead(id, scope);
             return DataTypes.number;
         }
         return DataTypes.unknown;

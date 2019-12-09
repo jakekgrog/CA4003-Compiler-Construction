@@ -1,15 +1,12 @@
 var test: boolean;
-const myBool: integer = 5;
+const myBool: integer = 5 + 3 + 8 + 9 + 23;
 
+const x: integer = 4 + 9 + 23;
 
-boolean less(x: integer, y: integer) {
-    var isLess: boolean;
-    if (x < y && y > x) {
-        isLess = true;
-    } else {
-        isLess = false;
-    }
-    return(isLess);
+integer add(x: integer, y:integer) {
+    var z: integer;
+    z = x + y;
+    return(z);
 }
 
 main
@@ -17,11 +14,9 @@ main
     var x: integer;
     var y: integer;
     var z: integer;
-    var i: boolean;
 
-    test = true;
     x = 5;
-    y = 5;
-
-    i = less(x, y);
+    y = 5 + 2 + 7;
+    z = add(x, y);
 }
+

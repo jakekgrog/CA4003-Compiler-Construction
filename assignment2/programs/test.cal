@@ -13,7 +13,24 @@ integer multiply (x:integer, y:integer)
 
     else
     {
-        minus_sign = false;
+        if y < 0 && x >= 0
+        {
+            minus_sign = true;
+            y = -y;
+        }
+        else
+        {
+            if (x < 0) && y < 0
+            {
+                minus_sign = false;
+                x = -x;
+                y = -y;
+            }
+            else
+            {
+                minus_sign = false;
+            }
+        }
     }
     return (x);
 } 
