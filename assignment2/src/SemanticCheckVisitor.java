@@ -9,7 +9,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
     private static String scope;
     SymbolTable st = new SymbolTable();
     private ArrayList<String> functions = new ArrayList<>();
-    private Hashtable<String, Hashtable<String, Integer>> scopeWriteRead = new Hashtable<>();
     
     @Override
     public Object visit(SimpleNode node, Object data) {
@@ -27,9 +26,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
                 System.out.println("Program Error: Function (" + func +") was declared but never used");
             }
         }
-        
-        // Check all variables have been read and written to.
-        checkScopeWriteRead(scope);
 
         return data;
     }
@@ -50,7 +46,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
             System.out.println("Declaration Error: '" + id + "' already declared in " + scope + " scope");
         } else {
             st.putSymbol(id, type.toString(), DataTypes.varDecl, scope);
-            scopeDeclared(id, scope);
         }
         return data;
     }
@@ -71,8 +66,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
             System.out.println("Assignment of different types");
         } else {
             st.putSymbol(id, declared_type.toString(), DataTypes.constDecl, scope);
-            scopeDeclared(id, scope);
-            scopeWrite(id, scope);
         }
         
         return data;
@@ -97,7 +90,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
             System.out.println("Identifier used before being declared");
             return DataTypes.unknown;
         } else {
-            scopeRead(id, scope);
             return toDataType(e.type);
         }
     }
@@ -137,8 +129,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
         if (returnType != type) {
             System.out.println("Type Error: Function (" + id + ") must return " + type);
         }
-        
-        checkScopeWriteRead(scope);
 
         node.jjtGetChild(7).jjtAccept(this, data);  // Close Block
         st.putSymbol(id, signature, DataTypes.function, scope);
@@ -368,7 +358,6 @@ public class SemanticCheckVisitor implements CCALParserVisitor
         if (toDataType(e.type) != exp) {
             System.out.println("Value Error: Cannot assign " + exp + " to " + e.type);
         }
-        scopeWrite(id, scope);
         return DataTypes.unknown;
     }
 
@@ -463,40 +452,5 @@ public class SemanticCheckVisitor implements CCALParserVisitor
             }
         }
         return isValid;
-    }
-
-    private void scopeRead(String id, String scope) {
-        Hashtable idInfo = scopeWriteRead.get(scope);
-        idInfo.put(id, 3);
-    }
-
-    private void scopeWrite(String id, String scope) {
-        Hashtable idInfo = scopeWriteRead.get(scope);
-        idInfo.put(id, 2);
-    }
-
-    private void scopeDeclared(String id, String scope) {
-        if (scopeWriteRead.get(scope) != null){
-            Hashtable idInfo = scopeWriteRead.get(scope);
-            idInfo.put(id, 1);
-        } else {
-            scopeWriteRead.put(scope, new Hashtable<String, Integer>());
-            Hashtable idInfo = new Hashtable<String, Integer>();
-
-            idInfo.put(id, 1);
-            scopeWriteRead.put(scope, idInfo);
-        }
-    }
-
-    private void checkScopeWriteRead(String scope) {
-        Hashtable idInfo = scopeWriteRead.get(scope);
-        idInfo.forEach((k, v) -> {
-            Integer variableState = (Integer) v;
-            if (variableState == 1 && scope != "global") {
-                System.out.println("Variable Error: " + k + " has been declared but not written to or read from");
-            } else if (variableState == 2 && scope != "main" && scope != "global") {
-                System.out.println("Variable Error: " + k + " has been declared and written to but not read from");
-            }
-        });
     }
 }

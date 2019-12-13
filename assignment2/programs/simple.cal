@@ -5,8 +5,23 @@ const x: integer = 4 + 9 + 23;
 
 integer add(x: integer, y:integer) {
     var z: integer;
-    z = x + y;
-    return(z);
+    z = x + y + 3;
+
+    if 2 + 4 > y + 2 {
+        z = z + 3;
+        if x < y {
+            z = z + 10;
+        } else {
+            z = z + 12;
+        }
+    } else {
+        z = z + 1;
+    }
+    return(z + y + 4);
+}
+
+integer sub(x: integer, y:integer) {
+    return (x - y);
 }
 
 main
@@ -17,6 +32,8 @@ main
 
     x = 5;
     y = 5 + 2 + 7;
-    z = add(x, y);
+    add(x, y);
+
+    sub(y, x);
 }
 

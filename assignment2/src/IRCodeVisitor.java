@@ -5,6 +5,7 @@ public class IRCodeVisitor implements CCALParserVisitor
     
     private int lblVal = 1;
     private int tmpVal = 1;
+    private int paramNum = 0;
 
 
     @Override
@@ -87,6 +88,7 @@ public class IRCodeVisitor implements CCALParserVisitor
     public Object visit(Function node, Object data) {
         String functionId = (String) node.jjtGetChild(1).jjtAccept(this, data);
         System.out.println(functionId + ":");
+        node.jjtGetChild(2).jjtAccept(this, data);
         node.jjtGetChild(5).jjtAccept(this, data);
         node.jjtGetChild(6).jjtAccept(this, data);
         return data;
@@ -94,7 +96,25 @@ public class IRCodeVisitor implements CCALParserVisitor
 
     @Override
     public Object visit(Return node, Object data) {
-        System.out.println("\t" + "return");
+        if (node.jjtGetNumChildren() == 0) {
+            System.out.println("\t" + "return");
+            return data;
+        }
+
+        SimpleNode rChild = (SimpleNode) node.jjtGetChild(0);
+        String rChildType = rChild.toString();
+
+        if (!rChildType.equals("ArithOp")) {
+            String var = (String) node.jjtGetChild(0).jjtAccept(this, data);
+            System.out.println("\t" + "return " + var);
+        } else {
+            String var = (String) node.jjtGetChild(0).jjtAccept(this, data);
+            String lOp = (String) rChild.jjtGetChild(0).jjtAccept(this, data);
+            String operator = (String) rChild.jjtGetValue();
+
+            System.out.println("\t" + "return t" + (tmpVal-1));
+        }
+
         return data;
     }
 
@@ -105,11 +125,18 @@ public class IRCodeVisitor implements CCALParserVisitor
 
     @Override
     public Object visit(ParamList node, Object data) {
+        node.childrenAccept(this, data);
         return data;
     }
 
     @Override
     public Object visit(NempParamList node, Object data) {
+        String paramId = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        System.out.println("\t" + paramId + " = getparam " + paramNum);
+        paramNum++;
+        if (node.jjtGetNumChildren() == 3) {
+            node.jjtGetChild(2).jjtAccept(this, data);
+        }
         return data;
     }
 
@@ -128,6 +155,16 @@ public class IRCodeVisitor implements CCALParserVisitor
 
     @Override
     public Object visit(Statement node, Object data) {
+        if (((String) node.jjtGetValue()).equals("if")) {
+            node.jjtGetChild(0).jjtAccept(this, data);
+            System.out.println("\t" + "ifz t" + (tmpVal-1) + " goto L" + lblVal);
+            node.jjtGetChild(1).jjtAccept(this, data);
+            node.jjtGetChild(2).jjtAccept(this, data);
+        } else if (((String) node.jjtGetValue()).equals("else")) {
+            System.out.println("L"+(lblVal-1)+":");
+            lblVal++;
+            node.jjtGetChild(0).jjtAccept(this, data);
+        }
         return data;
     }
 
@@ -138,15 +175,14 @@ public class IRCodeVisitor implements CCALParserVisitor
 
     @Override
     public Object visit(CompOp node, Object data) {
+        node.childrenAccept(this, data);
+        System.out.println("\t" + "t" + tmpVal + " = t" + (tmpVal-2) + " " + ((String)node.jjtGetValue()) + " t" + (tmpVal-1));
+        tmpVal++;
         return data;
     }
 
     @Override
     public Object visit(ArithOp node, Object data) {
-
-        // If rightOp = ArithOp, left + temp
-        // If rightOp != ArithOp, left + right
-
         String operator = (String) node.jjtGetValue();
         SimpleNode lOp = (SimpleNode) node.jjtGetChild(0);
         SimpleNode rOp = (SimpleNode) node.jjtGetChild(1);
@@ -195,7 +231,17 @@ public class IRCodeVisitor implements CCALParserVisitor
 
     @Override
     public Object visit(FuncCall node, Object data) {
-        return data;
+        int count = printArgs((ArgList)node.jjtGetChild(1), data);
+        String id = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        
+        String instruction = "call " + id + " " + count;
+
+        SimpleNode parent = (SimpleNode) node.jjtGetParent();
+        String parentType = parent.toString();
+        if (parentType.equals("StatementBlock")) {
+            System.out.println("\t" + instruction);
+        }
+        return instruction;
     }
 
     @Override
@@ -224,6 +270,11 @@ public class IRCodeVisitor implements CCALParserVisitor
             rChild.jjtGetChild(1).jjtAccept(this, data);
 
             System.out.println("\t" + var + " = " + lOp + " " + operator + " t" + (tmpVal-1));
+        } else if (rChild.jjtGetChild(1).toString().equals("FuncCall")) {
+            String var = (String) node.jjtGetChild(0).jjtAccept(this, data);
+
+            String instruction = (String) rChild.jjtGetChild(1).jjtAccept(this, data);
+            System.out.println("\t" + var + " " + instruction);
         }
         return data;
     }
@@ -238,16 +289,13 @@ public class IRCodeVisitor implements CCALParserVisitor
         return data;
     }
 
-    private Object arithAddrCodeBuilder(SimpleNode node, Object data) {
-        String child1 = (String) node.jjtGetChild(0).jjtAccept(this, data);
-        String child2 = (String) node.jjtGetChild(1).jjtAccept(this, data);
-        String parent = node.jjtGetParent().toString();
-        if ("Assignment".equals(parent)) {
-            return (child1 + " " + node.value + " " + child2);
+    private int printArgs(ArgList node, Object data) {
+        int count = 0;
+        while (node.jjtGetNumChildren() != 0) {
+            count++;
+            System.out.println("\t" + "param " + node.jjtGetChild(0).jjtAccept(this, data));
+            node = (ArgList) node.jjtGetChild(1);
         }
-        String t = "t" + tmpVal;
-        tmpVal++;
-        System.out.println("\t" + t + " = " + child1 + " " + node.value + " " + child2);
-        return t;
+        return count;
     }
 }
