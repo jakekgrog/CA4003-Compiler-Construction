@@ -1,4 +1,4 @@
-import com.sun.management.OperatingSystemMXBean;
+import java.util.Stack;;;
 
 public class IRCodeVisitor implements CCALParserVisitor
 {
@@ -6,7 +6,7 @@ public class IRCodeVisitor implements CCALParserVisitor
     private int lblVal = 1;
     private int tmpVal = 1;
     private int paramNum = 0;
-
+    private Stack<Integer> labelStack = new Stack<Integer>();
 
     @Override
     public Object visit(SimpleNode node, Object data) {
@@ -16,7 +16,10 @@ public class IRCodeVisitor implements CCALParserVisitor
     @Override
     public Object visit(Program node, Object data) {
         System.out.println("global:");
-        node.childrenAccept(this, data);
+        node.jjtGetChild(0).jjtAccept(this, data);
+        System.out.println("\tgoto main");
+        node.jjtGetChild(1).jjtAccept(this, data);
+        node.jjtGetChild(2).jjtAccept(this, data);
         return data;
     }
 
@@ -157,15 +160,43 @@ public class IRCodeVisitor implements CCALParserVisitor
     public Object visit(Statement node, Object data) {
         if (((String) node.jjtGetValue()).equals("if")) {
             node.jjtGetChild(0).jjtAccept(this, data);
-            System.out.println("\t" + "ifz t" + (tmpVal-1) + " goto L" + lblVal);
-            node.jjtGetChild(1).jjtAccept(this, data);
-            node.jjtGetChild(2).jjtAccept(this, data);
-        } else if (((String) node.jjtGetValue()).equals("else")) {
-            System.out.println("L"+(lblVal-1)+":");
+            System.out.println("\tifz t" + (tmpVal-1) +" goto L" + lblVal);
+            labelStack.push(lblVal);
             lblVal++;
+
+            node.jjtGetChild(1).jjtAccept(this, data);
+            lblVal++;
+            System.out.println("\tgoto L" + (lblVal-1));
+            System.out.println("L" + labelStack.pop());
+
+            node.jjtGetChild(2).jjtAccept(this, data);
+            return data;
+        } else if (((String) node.jjtGetValue()).equals("else")) {
             node.jjtGetChild(0).jjtAccept(this, data);
+            System.out.println("\tgoto L" + (lblVal-1));
+            System.out.println("L" + (lblVal-1));
+            return data;
+        } else if (((String) node.jjtGetValue()).equals("while")) { 
+            System.out.println("L" + lblVal + ":");
+            labelStack.push(lblVal);
+            lblVal++;
+            
+            node.jjtGetChild(0).jjtAccept(this, data);
+            System.out.println("\tifz t" + (tmpVal-1) + " goto L" + lblVal);
+            labelStack.push(lblVal);
+            lblVal++;
+            node.jjtGetChild(1).jjtAccept(this, data);
+            int tmpLbl = labelStack.pop();
+            int tmpLbl2 = labelStack.pop();
+            System.out.println("\tgoto L"+ tmpLbl2);
+            System.out.println("L" + tmpLbl + ":");
+            lblVal++;
+            return data;
+        } else {    
+            node.childrenAccept(this, data);
+            return data;
         }
-        return data;
+        
     }
 
     @Override
@@ -175,10 +206,14 @@ public class IRCodeVisitor implements CCALParserVisitor
 
     @Override
     public Object visit(CompOp node, Object data) {
-        node.childrenAccept(this, data);
-        System.out.println("\t" + "t" + tmpVal + " = t" + (tmpVal-2) + " " + ((String)node.jjtGetValue()) + " t" + (tmpVal-1));
+        // both singles
+        String lValue = (String) node.jjtGetChild(0).jjtAccept(this, data);
+        String rValue = (String) node.jjtGetChild(1).jjtAccept(this, data);
+        String operator = (String) node.jjtGetValue();
+
+        System.out.println("\t" + "t" + tmpVal + " = " + lValue + " " + operator + " " + rValue);
         tmpVal++;
-        return data;
+        return tmpVal-1;
     }
 
     @Override
@@ -200,13 +235,13 @@ public class IRCodeVisitor implements CCALParserVisitor
         }
 
         tmpVal++;
-        return data;
+        return "t"+(tmpVal-1);
     
     }
 
     @Override
     public Object visit(Boolean node, Object data) {
-        return DataTypes.bool;
+        return node.jjtGetValue();
     }
 
     @Override
@@ -216,6 +251,13 @@ public class IRCodeVisitor implements CCALParserVisitor
 
     @Override
     public Object visit(BoolOp node, Object data) {
+        // both singles
+        Integer lChild = (Integer) node.jjtGetChild(0).jjtAccept(this, data);
+        Integer rChild = (Integer) node.jjtGetChild(1).jjtAccept(this, data);
+        String operator = (String) node.jjtGetValue();
+
+        System.out.println("\t" + "t" + tmpVal + " = t" + (lChild) + " " + operator + " t" + rChild);
+        tmpVal++;
         return data;
     }
 
